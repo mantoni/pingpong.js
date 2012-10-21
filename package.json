@@ -1,0 +1,26 @@
+{
+  "name"            : "pingpong",
+  "version"         : "0.1.0",
+  "description"     : "Dead simple RPC with response support",
+  "keywords"        : ["socket", "rpc", "response", "node"],
+  "author"          : "Maximilian Antoni (http://maxantoni.de)",
+  "homepage"        : "http://mantoni.github.com/pingpong.js",
+  "main"            : "./lib/pingpong.js",
+  "engines"         : {
+    "node"          : ">=0.6"
+  },
+  "scripts"         : {
+    "test"          : "make"
+  },
+  "repository"      : {
+    "type"          : "git",
+    "url"           : "https://github.com/mantoni/pingpong.js.git"
+  },
+  "devDependencies" : {
+    "utest"         : "~0.0.6",
+    "urun"          : "~0.0.6",
+    "sinon"         : "~1.5.0",
+    "autolint"      : "~1.0.4"
+  },
+  "files"           : ["lib", "README.md", "LICENSE"]
+}
