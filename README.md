@@ -33,8 +33,8 @@ Client:
 ```js
 var pingpong = require('pingpong');
 
-pingpong.client({ port : 8000 }, function (invoke) {
-  invoke('Hello world!', function (err, result) {
+pingpong.client({ port : 8000 }, function (err, remote) {
+  remote.invoke('Hello world!', function (err, result) {
     console.log(result);
   });
 });

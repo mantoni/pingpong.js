@@ -9,10 +9,10 @@
 
 var pingpong = require('../lib/pingpong');
 
-pingpong.client({ port : 8000 }, function (invoke) {
+pingpong.client({ port : 8000 }, function (err, remote) {
   var count = 0;
   setInterval(function () {
-    invoke('Hello world (' + (++count) + ')', function (err, result) {
+    remote.invoke('Hello world (' + (++count) + ')', function (err, result) {
       console.log(err || result);
     });
   }, 100);
