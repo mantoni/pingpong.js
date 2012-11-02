@@ -9,6 +9,12 @@
 
 var pingpong = require('../lib/pingpong');
 
-pingpong.server(8000, function (text, responder) {
-  responder(null, '[server] ' + text);
+pingpong.server(8000, function (err, server) {
+
+  server.onConnect(function (client) {
+    client.onMessage(function (text, responder) {
+      responder(null, '[server] ' + text);
+    });
+  });
+
 });

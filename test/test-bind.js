@@ -34,14 +34,14 @@ test('pingpong.bind', {
     this.invoke();
 
     sinon.assert.calledOnce(this.socket.write);
-    sinon.assert.calledWith(this.socket.write, '{}');
+    sinon.assert.calledWith(this.socket.write, '{}\n');
   },
 
 
   'should write single argument': function () {
     this.invoke(42);
 
-    sinon.assert.calledWith(this.socket.write, '{"ar":[42]}');
+    sinon.assert.calledWith(this.socket.write, '{"ar":[42]}\n');
   },
 
 
@@ -49,14 +49,14 @@ test('pingpong.bind', {
     this.invoke('abc', 42, ['some', 'stuff']);
 
     sinon.assert.calledWith(this.socket.write,
-      '{"ar":["abc",42,["some","stuff"]]}');
+      '{"ar":["abc",42,["some","stuff"]]}\n');
   },
 
 
   'should write id': function () {
     this.invoke(function () {});
 
-    sinon.assert.calledWith(this.socket.write, '{"id":0}');
+    sinon.assert.calledWith(this.socket.write, '{"id":0}\n');
   },
 
 
@@ -65,14 +65,14 @@ test('pingpong.bind', {
     this.socket.write.reset();
     this.invoke(function () {});
 
-    sinon.assert.calledWith(this.socket.write, '{"id":1}');
+    sinon.assert.calledWith(this.socket.write, '{"id":1}\n');
   },
 
 
   'should write id and args': function () {
     this.invoke(123, 'abc', function () {});
 
-    sinon.assert.calledWith(this.socket.write, '{"id":0,"ar":[123,"abc"]}');
+    sinon.assert.calledWith(this.socket.write, '{"id":0,"ar":[123,"abc"]}\n');
   },
 
 
@@ -80,7 +80,7 @@ test('pingpong.bind', {
     var spy = sinon.spy();
     this.invoke(spy);
 
-    this.socket.emit('data', new Buffer('{"ci":0}'));
+    this.socket.emit('data', new Buffer('{"ci":0}\n'));
 
     sinon.assert.calledOnce(spy);
   },
@@ -90,8 +90,8 @@ test('pingpong.bind', {
     var spy = sinon.spy();
     this.invoke(spy);
 
-    this.socket.emit('data', new Buffer('{"ci":0}'));
-    this.socket.emit('data', new Buffer('{"ci":0}'));
+    this.socket.emit('data', new Buffer('{"ci":0}\n'));
+    this.socket.emit('data', new Buffer('{"ci":0}\n'));
 
     sinon.assert.calledOnce(spy);
   },
@@ -101,7 +101,7 @@ test('pingpong.bind', {
     var spy = sinon.spy();
     this.invoke(spy);
 
-    this.socket.emit('data', new Buffer('{"ci":0,"re":{"abc":123}}'));
+    this.socket.emit('data', new Buffer('{"ci":0,"re":{"abc":123}}\n'));
 
     sinon.assert.calledWith(spy, null, { abc : 123 });
   },
@@ -111,7 +111,7 @@ test('pingpong.bind', {
     var spy = sinon.spy();
     this.invoke(spy);
 
-    this.socket.emit('data', new Buffer('{"ci":0,"er":"some error"}'));
+    this.socket.emit('data', new Buffer('{"ci":0,"er":"some error"}\n'));
 
     sinon.assert.calledWith(spy, sinon.match({
       name    : 'Error',
@@ -126,7 +126,7 @@ test('pingpong.bind', {
     this.invoke(spy1);
     this.invoke(spy2);
 
-    this.socket.emit('data', new Buffer('{"ci":0}'));
+    this.socket.emit('data', new Buffer('{"ci":0}\n'));
 
     sinon.assert.calledOnce(spy1);
     sinon.assert.notCalled(spy2);
@@ -139,9 +139,22 @@ test('pingpong.bind', {
     this.invoke(spy1);
     this.invoke(spy2);
 
-    this.socket.emit('data', new Buffer('{"ci":1}'));
+    this.socket.emit('data', new Buffer('{"ci":1}\n'));
 
     sinon.assert.notCalled(spy1);
+    sinon.assert.calledOnce(spy2);
+  },
+
+
+  'should invoke first and second': function () {
+    var spy1 = sinon.spy();
+    var spy2 = sinon.spy();
+    this.invoke(spy1);
+    this.invoke(spy2);
+
+    this.socket.emit('data', new Buffer('{"ci":0}\n{"ci":1}\n'));
+
+    sinon.assert.calledOnce(spy1);
     sinon.assert.calledOnce(spy2);
   },
 
@@ -241,7 +254,7 @@ test('pingpong.bind', {
 
 
   'should invoke handle on data without ci': function () {
-    this.socket.emit('data', new Buffer('{"id":5}'));
+    this.socket.emit('data', new Buffer('{"id":5}\n'));
 
     sinon.assert.calledOnce(this.handle);
     sinon.assert.calledWithExactly(this.handle, sinon.match.func);
@@ -249,21 +262,21 @@ test('pingpong.bind', {
 
 
   'should invoke handle with given args': function () {
-    this.socket.emit('data', new Buffer('{"id":4,"ar":[123,"abc"]}'));
+    this.socket.emit('data', new Buffer('{"id":4,"ar":[123,"abc"]}\n'));
 
     sinon.assert.calledWithExactly(this.handle, 123, "abc", sinon.match.func);
   },
 
 
   'should not pass function if no id was given': function () {
-    this.socket.emit('data', new Buffer('{}'));
+    this.socket.emit('data', new Buffer('{}\n'));
 
     sinon.assert.calledWithExactly(this.handle);
   },
 
 
   'should append function to args if no id was given': function () {
-    this.socket.emit('data', new Buffer('{"ar":[123,"abc"]}'));
+    this.socket.emit('data', new Buffer('{"ar":[123,"abc"]}\n'));
 
     sinon.assert.calledWithExactly(this.handle, 123, "abc");
   }
@@ -284,7 +297,7 @@ test('pingpong.bind handle', {
     var handle = sinon.spy(function (a, b, c, callback) {});
     pingpong.bind(this.socket, handle);
 
-    this.socket.emit('data', new Buffer('{"id":3}'));
+    this.socket.emit('data', new Buffer('{"id":3}\n'));
 
     sinon.assert.calledWithExactly(handle, undefined, undefined, undefined,
       sinon.match.func);
@@ -295,7 +308,7 @@ test('pingpong.bind handle', {
     var handle = sinon.spy(function (a, b, c, callback) {});
     pingpong.bind(this.socket, handle);
 
-    this.socket.emit('data', new Buffer('{"id":2,"ar":[123,"abc"]}'));
+    this.socket.emit('data', new Buffer('{"id":2,"ar":[123,"abc"]}\n'));
 
     sinon.assert.calledWithExactly(handle, 123, 'abc', undefined,
       sinon.match.func);
@@ -306,10 +319,10 @@ test('pingpong.bind handle', {
     var handle = sinon.stub().yields();
     pingpong.bind(this.socket, handle);
 
-    this.socket.emit('data', new Buffer('{"id":0}'));
+    this.socket.emit('data', new Buffer('{"id":0}\n'));
 
     sinon.assert.calledOnce(this.socket.write);
-    sinon.assert.calledWith(this.socket.write, '{"ci":0}');
+    sinon.assert.calledWith(this.socket.write, '{"ci":0}\n');
   },
 
 
@@ -317,10 +330,10 @@ test('pingpong.bind handle', {
     var handle = sinon.stub().yields();
     pingpong.bind(this.socket, handle);
 
-    this.socket.emit('data', new Buffer('{"id":1}'));
+    this.socket.emit('data', new Buffer('{"id":1}\n'));
 
     sinon.assert.calledOnce(this.socket.write);
-    sinon.assert.calledWith(this.socket.write, '{"ci":1}');
+    sinon.assert.calledWith(this.socket.write, '{"ci":1}\n');
   },
 
 
@@ -329,10 +342,10 @@ test('pingpong.bind handle', {
       var handle = sinon.stub().yields(null, "oh, hi!");
       pingpong.bind(this.socket, handle);
 
-      this.socket.emit('data', new Buffer('{"id":4}'));
+      this.socket.emit('data', new Buffer('{"id":4}\n'));
 
       sinon.assert.calledOnce(this.socket.write);
-      sinon.assert.calledWith(this.socket.write, '{"ci":4,"re":"oh, hi!"}');
+      sinon.assert.calledWith(this.socket.write, '{"ci":4,"re":"oh, hi!"}\n');
     },
 
 
@@ -340,10 +353,10 @@ test('pingpong.bind handle', {
     var handle = sinon.stub().yields(new Error('oh, shit!'));
     pingpong.bind(this.socket, handle);
 
-    this.socket.emit('data', new Buffer('{"id":5}'));
+    this.socket.emit('data', new Buffer('{"id":5}\n'));
 
     sinon.assert.calledOnce(this.socket.write);
-    sinon.assert.calledWith(this.socket.write, '{"ci":5,"er":"oh, shit!"}');
+    sinon.assert.calledWith(this.socket.write, '{"ci":5,"er":"oh, shit!"}\n');
   },
 
 
@@ -351,10 +364,10 @@ test('pingpong.bind handle', {
     var handle = sinon.stub().yields('oh, hell!');
     pingpong.bind(this.socket, handle);
 
-    this.socket.emit('data', new Buffer('{"id":666}'));
+    this.socket.emit('data', new Buffer('{"id":9}\n'));
 
     sinon.assert.calledOnce(this.socket.write);
-    sinon.assert.calledWith(this.socket.write, '{"ci":666,"er":"oh, hell!"}');
+    sinon.assert.calledWith(this.socket.write, '{"ci":9,"er":"oh, hell!"}\n');
   }
 
 });

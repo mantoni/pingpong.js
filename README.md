@@ -23,8 +23,14 @@ Server:
 ```js
 var pingpong = require('pingpong');
 
-pingpong.server(8000, function (text, responder) {
-  responder(null, text.toUpperCase());
+pingpong.server(8000, function (err, server) {
+
+  server.onConnect(function (client) {
+    client.onMessage(function (text, responder) {
+      responder(null, text.toUpperCase());
+    });
+  });
+
 });
 ```
 
