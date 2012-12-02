@@ -12,14 +12,13 @@ var assert    = require('assert');
 var sinon     = require('sinon');
 
 var pingpong  = require('../lib/pingpong');
-var events    = require('events');
 var net       = require('net');
 
 
 test('pingpong.client', {
 
   before: function () {
-    this.socket = new events.EventEmitter();
+    this.socket = new net.Socket();
     sinon.stub(net, 'connect').returns(this.socket);
     this.invoker = function () {};
     sinon.stub(pingpong, 'bind').returns(this.invoker);

@@ -12,14 +12,13 @@ var assert    = require('assert');
 var sinon     = require('sinon');
 
 var pingpong  = require('../lib/pingpong');
-var events    = require('events');
 var net       = require('net');
 
 
 test('pingpong.server', {
 
   before: function () {
-    this.server = new events.EventEmitter();
+    this.server = new net.Server();
     this.server.listen = sinon.stub();
     sinon.stub(net, 'createServer').returns(this.server);
     this.invoker = sinon.stub();
@@ -61,7 +60,7 @@ test('pingpong.server', {
   'should invoke onConnect with client': function () {
     this.server.listen.yields();
     var spy     = sinon.spy();
-    var socket  = new events.EventEmitter();
+    var socket  = new net.Socket();
 
     pingpong.server(8000, function (err, server) {
       server.onConnect(spy);
@@ -80,7 +79,7 @@ test('pingpong.server', {
   'should invoke onConnect with already connected client': function () {
     this.server.listen.yields();
     var spy     = sinon.spy();
-    var socket  = new events.EventEmitter();
+    var socket  = new net.Socket();
     var s;
 
     pingpong.server(8000, function (err, server) {
@@ -107,7 +106,7 @@ test('pingpong.server', {
         client.onMessage(spy);
       });
     });
-    net.createServer.invokeCallback(new events.EventEmitter());
+    net.createServer.invokeCallback(new net.Socket());
     pingpong.bind.invokeCallback(123, 'abc');
 
     sinon.assert.calledOnce(spy);
@@ -122,7 +121,7 @@ test('pingpong.server', {
     pingpong.server(8000, function (err, server) {
       server.onConnect(function () {});
     });
-    net.createServer.invokeCallback(new events.EventEmitter());
+    net.createServer.invokeCallback(new net.Socket());
 
     assert.doesNotThrow(function () {
       pingpong.bind.invokeCallback(123, 'abc');
@@ -145,7 +144,7 @@ test('pingpong.server', {
   'should add client object to clients array on connect': function () {
     this.server.listen.yields();
     var spy     = sinon.spy();
-    var socket  = new events.EventEmitter();
+    var socket  = new net.Socket();
     var s;
 
     pingpong.server(8000, function (err, server) {
@@ -160,7 +159,7 @@ test('pingpong.server', {
 
   'should remove client object from clients array on close': function () {
     this.server.listen.yields();
-    var socket = new events.EventEmitter();
+    var socket = new net.Socket();
     var s;
 
     pingpong.server(8000, function (err, server) {
@@ -177,7 +176,7 @@ test('pingpong.server', {
     this.server.listen.yields();
     var spy1    = sinon.spy();
     var spy2    = sinon.spy();
-    var socket  = new events.EventEmitter();
+    var socket  = new net.Socket();
 
     pingpong.server(8000, function (err, server) {
       server.onConnect(spy1);
