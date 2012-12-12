@@ -159,6 +159,34 @@ test('pingpong.bind', {
   },
 
 
+  'should handle multiple chunks': function () {
+    var spy = sinon.spy();
+    this.invoke(spy);
+
+    this.socket.emit('data', new Buffer('{"ci":'));
+    this.socket.emit('data', new Buffer('0}\n'));
+
+    sinon.assert.calledOnce(spy);
+  },
+
+
+  'should handle mutliple chunks twice': function () {
+    var spy1 = sinon.spy();
+    var spy2 = sinon.spy();
+    this.invoke(spy1);
+    this.invoke(spy2);
+
+    this.socket.emit('data', new Buffer('{"ci'));
+    this.socket.emit('data', new Buffer('":'));
+    this.socket.emit('data', new Buffer('0}\n'));
+    this.socket.emit('data', new Buffer('{"ci":'));
+    this.socket.emit('data', new Buffer('1}\n'));
+
+    sinon.assert.calledOnce(spy1);
+    sinon.assert.calledOnce(spy2);
+  },
+
+
   'should err on all outstanding responses if socket errs': function () {
     var spy1 = sinon.spy();
     var spy2 = sinon.spy();
@@ -191,7 +219,7 @@ test('pingpong.bind', {
   'should err on second callback if first throws on error': sinon.test(
     function () {
       this.stub(process.stderr, 'write'); // stop moaning!
-      var stub  = sinon.stub().throws(new TypeError('wrf?'));
+      var stub  = sinon.stub().throws(new TypeError('wtf?'));
       var spy   = sinon.spy();
       this.invoke(stub);
       this.invoke(spy);
@@ -279,6 +307,17 @@ test('pingpong.bind', {
     this.socket.emit('data', new Buffer('{"ar":[123,"abc"]}\n'));
 
     sinon.assert.calledWithExactly(this.handle, 123, "abc");
+  },
+
+  'should append JSON string to error message if parsing fails': function () {
+    var invalidJson = '{"ar:xy}';
+    try {
+      this.socket.emit('data', new Buffer(invalidJson + '\n'));
+      assert.fail('Exception expected');
+    } catch (e) {
+      assert.equal(e.name, 'SyntaxError');
+      assert.equal(e.message, 'Unexpected end of input: ' + invalidJson);
+    }
   }
 
 
