@@ -1,113 +1,108 @@
-/**
+/*global describe, it, beforeEach, afterEach*/
+/*
  * pingpong.js
  *
- * Copyright (c) 2012 Maximilian Antoni <mail@maxantoni.de>
+ * Copyright (c) 2012-2015 Maximilian Antoni <mail@maxantoni.de>
  *
  * @license MIT
  */
 'use strict';
 
-var test      = require('utest');
-var assert    = require('assert');
-var sinon     = require('sinon');
-
-var pingpong  = require('../lib/pingpong');
-var net       = require('net');
+var assert   = require('assert');
+var sinon    = require('sinon');
+var net      = require('net');
+var pingpong = require('../lib/pingpong');
 
 
-test('pingpong.client', {
+describe('client', function () {
+  var socket;
+  var invoker;
 
-  before: function () {
-    this.socket = new net.Socket();
-    sinon.stub(net, 'connect').returns(this.socket);
-    this.invoker = function () {};
-    sinon.stub(pingpong, 'bind').returns(this.invoker);
-  },
+  beforeEach(function () {
+    socket = new net.Socket();
+    sinon.stub(net, 'connect').returns(socket);
+    invoker = function () { return; };
+    sinon.stub(pingpong, 'bind').returns(invoker);
+  });
 
-  after: function () {
+  afterEach(function () {
     net.connect.restore();
     pingpong.bind.restore();
-  },
+  });
 
-
-  'should invoke net.connect with given config': function () {
+  it('invokes net.connect with given config', function () {
     var config = { port : 8000 };
 
-    pingpong.client(config, function () {});
+    pingpong.client(config, function () { return; });
 
     sinon.assert.calledOnce(net.connect);
     sinon.assert.calledWith(net.connect, config, sinon.match.func);
-  },
+  });
 
-
-  'should not yield if not connected': function () {
+  it('does not yield if not connected', function () {
     var spy = sinon.spy();
 
     pingpong.client({}, spy);
 
     sinon.assert.notCalled(spy);
-  },
+  });
 
-
-  'should yield error on connection error': function () {
+  it('yields error on connection error', function () {
     var spy = sinon.spy();
     var err = new Error();
     pingpong.client({}, spy);
 
-    this.socket.emit('error', err);
+    socket.emit('error', err);
 
     sinon.assert.calledOnce(spy);
     sinon.assert.calledWith(spy, err);
-  },
+  });
 
-
-  'should not yield errors twice': function () {
+  it('does not yield errors twice', function () {
     var spy = sinon.spy();
     pingpong.client({}, spy);
 
-    this.socket.emit('error');
+    socket.emit('error');
     try {
-      this.socket.emit('error');
-    } catch (ignored) {}
+      socket.emit('error');
+    } catch (ignore) {}
 
     sinon.assert.calledOnce(spy);
-  },
+  });
 
-
-  'should yield null and remote once connected': function () {
+  it('yields null and remote once connected', function () {
     var spy = sinon.spy();
     pingpong.client({}, spy);
 
     net.connect.invokeCallback();
 
     sinon.assert.calledOnce(pingpong.bind);
-    sinon.assert.calledWith(pingpong.bind, this.socket);
+    sinon.assert.calledWith(pingpong.bind, socket);
     sinon.assert.calledOnce(spy);
     sinon.assert.calledWith(spy, null, sinon.match({
-      socket : this.socket,
-      invoke : this.invoker
+      socket : socket,
+      invoke : invoker
     }));
-  },
+  });
 
-
-  'should not yield again on error after successful connect': function () {
+  it('does not yield again on error after successful connect', function () {
     var spy = sinon.spy();
     pingpong.client({}, spy);
     net.connect.invokeCallback();
     spy.reset();
 
     try {
-      this.socket.emit('error');
-    } catch (ignored) {}
+      socket.emit('error');
+    } catch (ignore) {}
 
     sinon.assert.notCalled(spy);
-  },
+  });
 
-
-  'should allow to register a message handler': function () {
+  it('allows to register a message handler', function () {
     var spy = sinon.spy();
 
     pingpong.client({}, function (err, remote) {
+      /*jslint unparam: true*/
       remote.onMessage(spy);
     });
     net.connect.invokeCallback();
@@ -115,17 +110,15 @@ test('pingpong.client', {
 
     sinon.assert.calledOnce(spy);
     sinon.assert.calledWith(spy, 123, 'abc');
-  },
+  });
 
-
-  'should not throw if no message listener was installed': function () {
-    pingpong.client({}, function () {});
+  it('does not throw if no message listener was installed', function () {
+    pingpong.client({}, function () { return; });
     net.connect.invokeCallback();
 
     assert.doesNotThrow(function () {
       pingpong.bind.invokeCallback(123, 'abc');
     });
-  }
+  });
 
 });
-

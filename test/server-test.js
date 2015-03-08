@@ -1,68 +1,67 @@
-/**
+/*global describe, it, beforeEach, afterEach*/
+/*
  * pingpong.js
  *
- * Copyright (c) 2012 Maximilian Antoni <mail@maxantoni.de>
+ * Copyright (c) 2012-2015 Maximilian Antoni <mail@maxantoni.de>
  *
  * @license MIT
  */
 'use strict';
 
-var test      = require('utest');
-var assert    = require('assert');
-var sinon     = require('sinon');
-
-var pingpong  = require('../lib/pingpong');
-var net       = require('net');
+var assert   = require('assert');
+var sinon    = require('sinon');
+var net      = require('net');
+var pingpong = require('../lib/pingpong');
 
 
-test('pingpong.server', {
+describe('server', function () {
+  var server;
+  var invoker;
 
-  before: function () {
-    this.server = new net.Server();
-    this.server.listen = sinon.stub();
-    sinon.stub(net, 'createServer').returns(this.server);
-    this.invoker = sinon.stub();
-    sinon.stub(pingpong, 'bind').returns(this.invoker);
-  },
+  beforeEach(function () {
+    server = new net.Server();
+    server.listen = sinon.stub();
+    sinon.stub(net, 'createServer').returns(server);
+    invoker = sinon.stub();
+    sinon.stub(pingpong, 'bind').returns(invoker);
+  });
 
-  after: function () {
+  afterEach(function () {
     net.createServer.restore();
     pingpong.bind.restore();
-  },
+  });
 
-
-  'should invoke net.createServer and bind to given port': function () {
-    pingpong.server(8000, function () {});
+  it('invokes net.createServer and bind to given port', function () {
+    pingpong.server(8000, function () { return; });
 
     sinon.assert.calledOnce(net.createServer);
-    sinon.assert.calledOnce(this.server.listen);
-    sinon.assert.calledWith(this.server.listen, 8000);
-  },
+    sinon.assert.calledOnce(server.listen);
+    sinon.assert.calledWith(server.listen, 8000);
+  });
 
-
-  'should yield server on listening': function () {
+  it('yields server on listening', function () {
     var spy = sinon.spy();
 
     pingpong.server(8000, spy);
 
     sinon.assert.notCalled(spy);
 
-    this.server.listen.invokeCallback();
+    server.listen.invokeCallback();
 
     sinon.assert.calledOnce(spy);
     sinon.assert.calledWithMatch(spy, null, {
-      server    : sinon.match.same(this.server),
+      server    : sinon.match.same(server),
       onConnect : sinon.match.func
     });
-  },
+  });
 
-
-  'should invoke onConnect with client': function () {
-    this.server.listen.yields();
+  it('invokes onConnect with client', function () {
+    server.listen.yields();
     var spy     = sinon.spy();
     var socket  = new net.Socket();
 
     pingpong.server(8000, function (err, server) {
+      /*jslint unparam: true*/
       server.onConnect(spy);
     });
     net.createServer.invokeCallback(socket);
@@ -71,18 +70,18 @@ test('pingpong.server', {
     sinon.assert.calledWithMatch(spy, {
       socket    : sinon.match.same(socket),
       onMessage : sinon.match.func,
-      invoke    : sinon.match.same(this.invoker)
+      invoke    : sinon.match.same(invoker)
     });
-  },
+  });
 
-
-  'should invoke onConnect with already connected client': function () {
-    this.server.listen.yields();
+  it('invokes onConnect with already connected client', function () {
+    server.listen.yields();
     var spy     = sinon.spy();
     var socket  = new net.Socket();
     var s;
 
     pingpong.server(8000, function (err, server) {
+      /*jslint unparam: true*/
       s = server;
     });
     net.createServer.invokeCallback(socket);
@@ -92,16 +91,16 @@ test('pingpong.server', {
     sinon.assert.calledWithMatch(spy, {
       socket    : sinon.match.same(socket),
       onMessage : sinon.match.func,
-      invoke    : sinon.match.same(this.invoker)
+      invoke    : sinon.match.same(invoker)
     });
-  },
+  });
 
-
-  'should invoke message handler when bind yields': function () {
-    this.server.listen.yields();
+  it('invokes message handler when bind yields', function () {
+    server.listen.yields();
     var spy = sinon.spy();
 
     pingpong.server(8000, function (err, server) {
+      /*jslint unparam: true*/
       server.onConnect(function (client) {
         client.onMessage(spy);
       });
@@ -111,74 +110,73 @@ test('pingpong.server', {
 
     sinon.assert.calledOnce(spy);
     sinon.assert.calledWith(spy, 123, 'abc');
-  },
+  });
 
-
-  'should not throw if bind yields before handler registration': function () {
-    this.server.listen.yields();
-    var spy = sinon.spy();
+  it('does not throw if bind yields before handler registration', function () {
+    server.listen.yields();
 
     pingpong.server(8000, function (err, server) {
-      server.onConnect(function () {});
+      /*jslint unparam: true*/
+      server.onConnect(function () { return; });
     });
     net.createServer.invokeCallback(new net.Socket());
 
     assert.doesNotThrow(function () {
       pingpong.bind.invokeCallback(123, 'abc');
     });
-  },
+  });
 
-
-  'should have clients array': function () {
-    this.server.listen.yields();
+  it('has clients array', function () {
+    server.listen.yields();
     var s;
 
     pingpong.server(8000, function (err, server) {
+      /*jslint unparam: true*/
       s = server;
     });
 
     assert(Array.isArray(s.clients));
-  },
+  });
 
-
-  'should add client object to clients array on connect': function () {
-    this.server.listen.yields();
+  it('adds client object to clients array on connect', function () {
+    server.listen.yields();
     var spy     = sinon.spy();
     var socket  = new net.Socket();
     var s;
 
     pingpong.server(8000, function (err, server) {
+      /*jslint unparam: true*/
       server.onConnect(spy);
       s = server;
     });
     net.createServer.invokeCallback(socket);
 
     assert.strictEqual(spy.firstCall.args[0], s.clients[0]);
-  },
+  });
 
-
-  'should remove client object from clients array on close': function () {
-    this.server.listen.yields();
+  it('removes client object from clients array on close', function () {
+    server.listen.yields();
     var socket = new net.Socket();
     var s;
 
     pingpong.server(8000, function (err, server) {
+      /*jslint unparam: true*/
       s = server;
     });
     net.createServer.invokeCallback(socket);
     socket.emit('close');
 
     assert.equal(s.clients.length, 0);
-  },
+  });
 
-
-  'should invoke onDisconnect callback on close': function () {
-    this.server.listen.yields();
+  it('invokes onDisconnect callback on close', function () {
+    server.listen.yields();
     var spy1    = sinon.spy();
     var spy2    = sinon.spy();
     var socket  = new net.Socket();
 
     pingpong.server(8000, function (err, server) {
+      /*jslint unparam: true*/
       server.onConnect(spy1);
       server.onDisconnect(spy2);
     });
@@ -187,8 +185,6 @@ test('pingpong.server', {
 
     sinon.assert.calledOnce(spy2);
     sinon.assert.calledWith(spy2, spy1.firstCall.args[0]);
-  }
-
+  });
 
 });
-
