@@ -12,9 +12,9 @@ npm install pingpong
 
 ## What it does
 
-Allows a client side function to invoke a server side function with some arguments and an optional callback. The server can err or answer on the callback.
-
-That's it.
+Allows a client side function to invoke a server side function with some
+arguments and an optional callback. The server can use the callback to send
+a reply or an error to the client.
 
 ## Usage
 
