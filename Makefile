@@ -1,24 +1,15 @@
 SHELL := /bin/bash
 
-default: lint test
+version = $(shell node -p "require('./package.json').version")
 
-lint:
-	@node_modules/.bin/autolint --once
+default:
+	npm test
 
-.PHONY: test
-test:
-	@node -e "require('urun')('test');"
+install:
+	rm -rf node_modules
+	npm install
 
-version := $(shell node -e "console.log(JSON.parse(require('fs').readFileSync('package.json')).version)")
-
-release:
-ifeq (v${version},$(shell git tag -l v${version}))
-	@echo "Version ${version} already released!"
-	@exit 1
-endif
-	@make
-	@echo "Creating tag v${version}"
-	@git tag -a -m "Release ${version}" v${version}
-	@git push --tags
-	@echo "Publishing to NPM"
-	@npm publish
+release: default
+	git tag -a -m "Release ${version}" v${version}
+	git push --follow-tags
+	npm publish
