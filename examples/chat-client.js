@@ -1,17 +1,18 @@
-/**
+/*jslint unparam: true*/
+/*
  * pingpong.js
  *
- * Copyright (c) 2012 Maximilian Antoni <mail@maxantoni.de>
+ * Copyright (c) 2012-2015 Maximilian Antoni <mail@maxantoni.de>
  *
  * @license MIT
  */
 'use strict';
 
-var pingpong  = require('../lib/pingpong');
-var readline  = require('readline');
+var pingpong = require('../lib/pingpong');
+var readline = require('readline');
 
-var ctrl_a    = { ctrl : true, name : 'a' };
-var ctrl_e    = { ctrl : true, name : 'e' };
+var ctrl_a = { ctrl : true, name : 'a' };
+var ctrl_e = { ctrl : true, name : 'e' };
 
 var rl = readline.createInterface({
   input   : process.stdin,
