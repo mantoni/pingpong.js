@@ -1,6 +1,6 @@
 {
   "name"            : "pingpong",
-  "version"         : "0.2.1",
+  "version"         : "1.0.0",
   "description"     : "Dead simple RPC with response support",
   "keywords"        : ["socket", "rpc", "response", "node"],
   "author"          : "Maximilian Antoni (http://maxantoni.de)",
