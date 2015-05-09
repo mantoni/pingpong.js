@@ -10,8 +10,9 @@
     "node"          : ">=0.6"
   },
   "scripts"         : {
-    "lint"          : "jslint --color \"**/*.js\"",
-    "test"          : "npm run lint && mocha"
+    "lint"          : "jslint --edition=latest --color \"**/*.js\"",
+    "pretest"       : "npm run lint",
+    "test"          : "mocha"
   },
   "repository"      : {
     "type"          : "git",
