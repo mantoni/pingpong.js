@@ -7,7 +7,7 @@
   "homepage"        : "http://mantoni.github.com/pingpong.js",
   "main"            : "./lib/pingpong.js",
   "engines"         : {
-    "node"          : ">=0.6"
+    "node"          : ">=0.10"
   },
   "scripts"         : {
     "lint"          : "jslint --edition=latest --color \"**/*.js\"",

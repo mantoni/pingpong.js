@@ -91,6 +91,10 @@ Run `echo.sh` from within the examples directory to see it in action.
   the server side. If a server passes in a callback as the last argument to
   `invoke`, it is passe in to hte handler and allows to send a reply.
 
+## Compatibility
+
+Node 0.10, 0.12
+
 ## License
 
 MIT
