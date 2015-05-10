@@ -1,5 +1,9 @@
 # Changes
 
+## 1.0.1
+
+- Only really works with Node 0.10 or later
+
 ## 1.0.0
 
 - Add API documentation
